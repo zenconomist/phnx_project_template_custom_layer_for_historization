@@ -87,8 +87,7 @@ Create a custom generator template in priv/templates/phx.gen.context/migration.e
 create table(:<%= schema.table %>) do
   <%= for {k, v} <- schema.types do %>add :<%= k %>, :<%= v %><%= schema.defaults[k] %>
   <% end %>
-  timestamps()
-  add :deleted_at, :utc_datetime
+  timestamps_with_deleted_at()
 end
 ```
 
@@ -128,24 +127,7 @@ end
 
 ## 4. Field Logging and SCD2
 
-Field Log Table Migration
-
-Add a migration for the field_logs table:
-
-```elixir
-create table(:field_logs) do
-  add :entity_type, :string
-  add :entity_id, :integer
-  add :field, :string
-  add :old_value, :string
-  add :new_value, :string
-  add :action, :string
-  add :changed_at, :utc_datetime
-  timestamps()
-end
-```
-
-History Table Generation
+### History Table Generation
 
 Modify the generator templates to include a history table for every model:
 
@@ -157,9 +139,26 @@ create table(:<%= schema.table %>_history) do
   add :is_current, :boolean, default: true
   <%= for {k, v} <- schema.types do %>add :<%= k %>, :<%= v %><%= schema.defaults[k] %>
   <% end %>
+  timestamps_with_deleted_at()
+end
+```
+
+### Field Log Table Migration
+
+Modify the generator templates to include a field_log table for every model:
+
+```elixir
+create table(:<%= schema.table %>_field_log) do
+  add :entity_id, references(:<%= schema.table %>, on_delete: :nothing)
+  add :field, :string
+  add :old_value, :string
+  add :new_value, :string
+  add :action, :string
+  add :changed_at, :utc_datetime
   timestamps()
 end
 ```
+
 
 ---
 
