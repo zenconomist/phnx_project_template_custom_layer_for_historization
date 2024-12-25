@@ -8,8 +8,8 @@ To create a template project that includes the desired features, you can follow 
 1.	Generate a New Phoenix Project:
 
 ```bash
-mix phx.new my_template_project --no-ecto --no-assets
-cd my_template_project
+mix phx.new phnx_project_template_history --no-ecto --no-assets
+cd phnx_project_template_history
 ```
 
 2.	Add Ecto and Database Dependencies:
