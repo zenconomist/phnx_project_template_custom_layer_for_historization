@@ -7,7 +7,7 @@ defmodule PhnxProjectTemplateHistoryWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_phnx_project_template_history_key",
-    signing_salt: "1HiZ4I2b",
+    signing_salt: "6fEa93Iz",
     same_site: "Lax"
   ]
 
