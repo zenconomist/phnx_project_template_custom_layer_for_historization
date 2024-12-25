@@ -23,4 +23,41 @@ defmodule PhnxProjectTemplateHistory.UsersFixtures do
 
     user
   end
+
+  @doc """
+  Generate a user.
+  """
+  def user_fixture(attrs \\ %{}) do
+    {:ok, user} =
+      attrs
+      |> Enum.into(%{
+        email: "some email",
+        name: "some name",
+        password: "some password"
+      })
+      |> PhnxProjectTemplateHistory.Users.create_user()
+
+    user
+  end
+
+  @doc """
+  Generate a unique user email.
+  """
+  def unique_user_email, do: "some email#{System.unique_integer([:positive])}"
+
+  @doc """
+  Generate a user.
+  """
+  def user_fixture(attrs \\ %{}) do
+    {:ok, user} =
+      attrs
+      |> Enum.into(%{
+        email: unique_user_email(),
+        name: "some name",
+        password: "some password"
+      })
+      |> PhnxProjectTemplateHistory.Users.create_user()
+
+    user
+  end
 end

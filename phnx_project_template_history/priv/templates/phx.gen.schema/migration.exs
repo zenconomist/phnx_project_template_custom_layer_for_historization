@@ -24,3 +24,4 @@ create table(:<%= schema.table %>_field_log) do
   add :action, :string
   add :changed_at, :utc_datetime
   timestamps()
+end

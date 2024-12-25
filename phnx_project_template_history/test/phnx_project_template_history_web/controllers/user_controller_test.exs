@@ -3,9 +3,9 @@ defmodule PhnxProjectTemplateHistoryWeb.UserControllerTest do
 
   import PhnxProjectTemplateHistory.UsersFixtures
 
-  @create_attrs %{name: "some name", email: "some email"}
-  @update_attrs %{name: "some updated name", email: "some updated email"}
-  @invalid_attrs %{name: nil, email: nil}
+  @create_attrs %{name: "some name", password: "some password", email: "some email"}
+  @update_attrs %{name: "some updated name", password: "some updated password", email: "some updated email"}
+  @invalid_attrs %{name: nil, password: nil, email: nil}
 
   describe "index" do
     test "lists all users", %{conn: conn} do
