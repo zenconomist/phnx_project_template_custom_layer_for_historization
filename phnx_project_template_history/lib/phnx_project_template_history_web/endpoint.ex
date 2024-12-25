@@ -7,7 +7,7 @@ defmodule PhnxProjectTemplateHistoryWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_phnx_project_template_history_key",
-    signing_salt: "ActSWTgx",
+    signing_salt: "1HiZ4I2b",
     same_site: "Lax"
   ]
 
@@ -31,6 +31,7 @@ defmodule PhnxProjectTemplateHistoryWeb.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
+    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :phnx_project_template_history
   end
 
   plug Phoenix.LiveDashboard.RequestLogger,

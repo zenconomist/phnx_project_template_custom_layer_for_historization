@@ -9,6 +9,7 @@ defmodule PhnxProjectTemplateHistory.Application do
   def start(_type, _args) do
     children = [
       PhnxProjectTemplateHistoryWeb.Telemetry,
+      PhnxProjectTemplateHistory.Repo,
       {DNSCluster, query: Application.get_env(:phnx_project_template_history, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: PhnxProjectTemplateHistory.PubSub},
       # Start the Finch HTTP client for sending emails
