@@ -12,11 +12,9 @@ defmodule <%= inspect schema.repo %>.Migrations.Create<%= Macro.camelize(schema.
       end
   <%= if Enum.any?(schema.indexes) do %><%= for index <- schema.indexes do %>
       <%= index %><% end %>
-  <% end %>  end
+  <% end %>
 
   
-
-  def change do
     create table(:<%= schema.table %>_history) do
       add :entity_id, references(:<%= schema.table %>, on_delete: :nothing)
       add :dat_from, :utc_datetime
@@ -27,10 +25,7 @@ defmodule <%= inspect schema.repo %>.Migrations.Create<%= Macro.camelize(schema.
       timestamps(<%= if schema.timestamp_type != :naive_datetime, do: "type: #{inspect schema.timestamp_type}" %>)
   
     end
-  end
 
-
-  def change do
     create table(:<%= schema.table %>_field_log) do
       add :entity_id, references(:<%= schema.table %>, on_delete: :nothing)
       add :field, :string
@@ -40,6 +35,7 @@ defmodule <%= inspect schema.repo %>.Migrations.Create<%= Macro.camelize(schema.
       add :changed_at, :utc_datetime
       timestamps(<%= if schema.timestamp_type != :naive_datetime, do: "type: #{inspect schema.timestamp_type}" %>)
     end
-  end
+
+  end # end of change
 
 end
