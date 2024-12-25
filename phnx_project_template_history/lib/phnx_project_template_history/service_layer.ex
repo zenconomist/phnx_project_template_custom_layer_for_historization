@@ -5,8 +5,8 @@ defmodule PhnxProjectTemplateHistory.ServiceLayer do
 
   def get_all(schema), do: RepoHelpers.get_all(schema)
 
-  def create(schema_module, attrs) do
-    changeset = schema_module.changeset(%schema_module{}, attrs)
+  def create(schema_module, attrs) when is_atom(schema_module) do
+    changeset = schema_module.changeset(struct(schema_module), attrs)
 
     Repo.transaction(fn ->
       record = Repo.insert!(changeset)

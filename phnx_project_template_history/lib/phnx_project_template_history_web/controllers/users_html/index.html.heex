@@ -1,0 +1,25 @@
+<.header>
+  Listing Users
+  <:actions>
+    <.link href={~p"/users/new"}>
+      <.button>New Users</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="users" rows={@users_collection} row_click={&JS.navigate(~p"/users/#{&1}")}>
+  <:col :let={users} label="Username">{users.username}</:col>
+  <:col :let={users} label="Email">{users.email}</:col>
+  <:col :let={users} label="Password">{users.password}</:col>
+  <:action :let={users}>
+    <div class="sr-only">
+      <.link navigate={~p"/users/#{users}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/users/#{users}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={users}>
+    <.link href={~p"/users/#{users}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>
