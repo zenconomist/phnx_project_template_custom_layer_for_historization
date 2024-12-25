@@ -60,7 +60,7 @@ end
 Run:
 
 ```bash
-mix exto.create
+# mix exto.create ##-> infra created in docker!
 ```
 
 ---
