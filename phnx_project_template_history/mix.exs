@@ -10,12 +10,12 @@ defmodule PhnxProjectTemplateHistory.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      generators: [
-        migration: "priv/templates/phx.gen.schema/migration.exs",
-        schema: "priv/templates/phx.gen.schema",
-        context: "priv/templates/phx.gen.context",
-        html: "priv/templates/phx.gen.html"
-      ]
+      # generators: [
+      #   migration: "priv/templates/phx.gen.schema/migration.exs",
+      #   schema: "priv/templates/phx.gen.schema",
+      #   context: "priv/templates/phx.gen.context",
+      #   html: "priv/templates/phx.gen.html"
+      # ]
     ]
   end
 
