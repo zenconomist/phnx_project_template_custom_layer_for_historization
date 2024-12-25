@@ -9,7 +9,13 @@ defmodule PhnxProjectTemplateHistory.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      generators: [
+        migration: "priv/templates/phx.gen.schema/migration.exs",
+        schema: "priv/templates/phx.gen.schema",
+        context: "priv/templates/phx.gen.context",
+        html: "priv/templates/phx.gen.html"
+      ]
     ]
   end
 

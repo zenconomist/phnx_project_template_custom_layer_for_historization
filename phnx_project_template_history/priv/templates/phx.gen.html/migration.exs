@@ -1,3 +1,4 @@
+<%= IO.inspect "Using custom migration template for table: #{schema.table}" %>
 create table(:<%= schema.table %>) do
   <%= for {k, v} <- schema.types do %>add :<%= k %>, :<%= v %><%= schema.defaults[k] %>
   <% end %>
