@@ -37,7 +37,7 @@ In config/dev.exs, add your database configuration:
 
 
 ```elixir
-config :my_template_project, MyTemplateProject.Repo,
+config :phnx_project_template_history, PhnxProjectTemplateHistory.Repo,
   username: "postgres",
   password: "postgres",
   database: "my_template_project_dev",
@@ -50,9 +50,9 @@ Create the Repo module in lib/my_template_project/repo.ex:
 
 
 ```elixir
-defmodule MyTemplateProject.Repo do
+defmodule PhnxProjectTemplateHistory.Repo do
   use Ecto.Repo,
-    otp_app: :my_template_project,
+    otp_app: :phnx_project_template_history,
     adapter: Ecto.Adapters.Postgres
 end
 ```
@@ -70,7 +70,7 @@ Add deleted_at Field to Every Table
 1.	Create a custom timestamps_with_deleted_at macro in lib/my_template_project/schema_helpers.ex:
 
 ```elixir
-defmodule MyTemplateProject.SchemaHelpers do
+defmodule PhnxProjectTemplateHistory.SchemaHelpers do
   defmacro timestamps_with_deleted_at(opts \\ []) do
     quote do
       timestamps(unquote(opts))
@@ -94,7 +94,7 @@ end
 3.	Update schema definitions to use the new macro:
 
 ```elixir
-use MyTemplateProject.SchemaHelpers
+use PhnxProjectTemplateHistory.SchemaHelpers
 
 schema "users" do
   field :name, :string
@@ -108,10 +108,10 @@ end
 Create wrapper functions in lib/my_template_project/repo_helpers.ex to exclude soft-deleted records by default:
 
 ```elixir
-defmodule MyTemplateProject.RepoHelpers do
+defmodule PhnxProjectTemplateHistory.RepoHelpers do
   import Ecto.Query
 
-  alias MyTemplateProject.Repo
+  alias PhnxProjectTemplateHistory.Repo
 
   def get!(queryable, id) do
     Repo.one!(from q in queryable, where: q.id == ^id and is_nil(q.deleted_at))
@@ -170,8 +170,8 @@ Example in lib/my_template_project/service_layer.ex:
 
 
 ```elixir
-defmodule MyTemplateProject.ServiceLayer do
-  alias MyTemplateProject.{RepoHelpers, Repo}
+defmodule PhnxProjectTemplateHistory.ServiceLayer do
+  alias PhnxProjectTemplateHistory.{RepoHelpers, Repo}
 
   def get!(schema, id), do: RepoHelpers.get!(schema, id)
 
@@ -234,23 +234,23 @@ Example for context.ex template (priv/templates/phx.gen.context/context.ex):
 
 ```elixir
 def list_<%= schema.plural %> do
-  MyTemplateProject.ServiceLayer.get_all(<%= inspect schema.module %>)
+  PhnxProjectTemplateHistory.ServiceLayer.get_all(<%= inspect schema.module %>)
 end
 
 def get_<%= schema.singular %>!(id) do
-  MyTemplateProject.ServiceLayer.get!(<%= inspect schema.module %>, id)
+  PhnxProjectTemplateHistory.ServiceLayer.get!(<%= inspect schema.module %>, id)
 end
 
 def create_<%= schema.singular %>(attrs \\ %{}) do
-  MyTemplateProject.ServiceLayer.create(<%= inspect schema.module %>, attrs)
+  PhnxProjectTemplateHistory.ServiceLayer.create(<%= inspect schema.module %>, attrs)
 end
 
 def update_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>, attrs) do
-  MyTemplateProject.ServiceLayer.update(<%= schema.singular %>, attrs)
+  PhnxProjectTemplateHistory.ServiceLayer.update(<%= schema.singular %>, attrs)
 end
 
 def delete_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>) do
-  MyTemplateProject.ServiceLayer.delete(<%= schema.singular %>)
+  PhnxProjectTemplateHistory.ServiceLayer.delete(<%= schema.singular %>)
 end
 ```
 

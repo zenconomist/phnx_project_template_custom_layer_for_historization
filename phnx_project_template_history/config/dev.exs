@@ -16,6 +16,15 @@ config :phnx_project_template_history, PhnxProjectTemplateHistoryWeb.Endpoint,
   secret_key_base: "FqynlqEE4B5orOcLLqp/Bo/3EmQM3jdh2FcqZwAkcOkcXrqd9/POlO48ghc5rOLi",
   watchers: []
 
+config :phnx_project_template_history, PhnxProjectTemplateHistory.Repo,
+  username: "postgres",
+  password: "postgres",
+  database: "my_template_project_dev",
+  hostname: "localhost",
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10
+
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
