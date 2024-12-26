@@ -1,19 +1,8 @@
-def list_<%= schema.plural %> do
-  PhnxProjectTemplateHistory.ServiceLayer.get_all(<%= inspect schema.module %>)
-end
+defmodule <%= inspect context.module %> do
+  @moduledoc """
+  The <%= context.name %> context.
+  """
 
-def get_<%= schema.singular %>!(id) do
-  PhnxProjectTemplateHistory.ServiceLayer.get!(<%= inspect schema.module %>, id)
-end
-
-def create_<%= schema.singular %>(attrs \\ %{}) do
-  PhnxProjectTemplateHistory.ServiceLayer.create(<%= inspect schema.module %>, attrs)
-end
-
-def update_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>, attrs) do
-  PhnxProjectTemplateHistory.ServiceLayer.update(<%= schema.singular %>, attrs)
-end
-
-def delete_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>) do
-  PhnxProjectTemplateHistory.ServiceLayer.delete(<%= schema.singular %>)
+  import Ecto.Query, warn: false
+  alias <%= inspect schema.repo %><%= schema.repo_alias %>
 end

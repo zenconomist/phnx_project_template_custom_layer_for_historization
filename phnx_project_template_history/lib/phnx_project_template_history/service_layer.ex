@@ -39,13 +39,16 @@ defmodule PhnxProjectTemplateHistory.ServiceLayer do
 
   defp log_changes(record, attrs, action) do
     # Implement logic to insert field log changes
+    record
   end
 
   defp insert_scd2_version(record) do
     # Implement logic to insert into SCD2 history table
+    record
   end
 
   defp mark_scd2_inactive(record) do
     # Implement logic to mark SCD2 record as inactive
+    record
   end
 end
