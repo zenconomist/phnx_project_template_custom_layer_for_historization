@@ -1,7 +1,7 @@
 defmodule PhnxProjectTemplateHistoryWeb.UserControllerTest do
   use PhnxProjectTemplateHistoryWeb.ConnCase
 
-  import PhnxProjectTemplateHistory.UsersFixtures
+  import PhnxProjectTemplateHistory.AccountsFixtures
 
   @create_attrs %{name: "some name", password: "some password", email: "some email"}
   @update_attrs %{name: "some updated name", password: "some updated password", email: "some updated email"}

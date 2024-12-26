@@ -18,7 +18,7 @@ defmodule PhnxProjectTemplateHistoryWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    resources "/users", UsersController
+    resources "/users", UserController
   end
 
   # Other scopes may use custom stacks.
