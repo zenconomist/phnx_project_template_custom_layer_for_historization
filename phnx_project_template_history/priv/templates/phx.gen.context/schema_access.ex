@@ -120,10 +120,13 @@
             old_value = Map.get(old_record, <%= inspect field %>)
             new_value = Map.get(record, <%= inspect field %>)
             if old_value != new_value do
-                changes = %{<%= inspect field %>: {old_value, new_value}}
+                # how to convert atom field to key in map?
+                # field = String.to_atom(field)
+                changes = %{<%= inspect Atom.to_string(field) %> => {old_value, new_value}}
             end
         <% end %>
     end
+
 
 
   defp insert_scd2_version(record) do
