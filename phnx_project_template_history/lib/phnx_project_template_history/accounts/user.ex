@@ -6,9 +6,9 @@ defmodule PhnxProjectTemplateHistory.Accounts.User do
     field :name, :string
     field :password, :string
     field :email, :string
+    field :deleted_at, :utc_datetime, default: nil
 
     timestamps(type: :utc_datetime)
-    field :deleted_at, :utc_datetime
   end
 
   @doc false

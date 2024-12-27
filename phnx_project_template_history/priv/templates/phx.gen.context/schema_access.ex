@@ -86,7 +86,13 @@
 
   """
   def delete_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>) do
-    Repo.delete(<%= schema.singular %>)
+    # repo update the record's deleted_at field to the current time
+    <%= schema.singular %>
+    |> <%= inspect schema.alias %>.changeset(%{deleted_at: DateTime.utc_now()})
+    |> Repo.update()
+    |> log_changes(attrs, :delete)
+    |> mark_scd2_inactive()
+
   end
 
   @doc """
@@ -105,7 +111,7 @@
   defp log_changes(record, old_record, attrs, action) do
     # iterate over the fields of the record recursively
     changes = record_changes(record, old_record)
-
+    record = Repo.insert(%ChangeLog{table_name: "<%= schema.table %>", record_id: record.id, changes: changes, action: action})
     record
   end
 
@@ -114,7 +120,7 @@
             old_value = Map.get(old_record, <%= inspect k %>)
             new_value = Map.get(record, <%= inspect k %>)
             if old_value != new_value do
-                changes = [<%= inspect k %>: {old_value, new_value}]
+                changes = %{<%= inspect k %>: {old_value, new_value}}
             end
         <% end %>
     end
