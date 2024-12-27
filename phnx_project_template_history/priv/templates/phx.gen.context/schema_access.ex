@@ -117,10 +117,10 @@
 
     defp record_changes(record, old_record, changes \\ []) do
         <%= for {field, _type} <- schema.attrs do %>
-            old_value = Map.get(old_record, <%= inspect k %>)
-            new_value = Map.get(record, <%= inspect k %>)
+            old_value = Map.get(old_record, <%= inspect field %>)
+            new_value = Map.get(record, <%= inspect field %>)
             if old_value != new_value do
-                changes = %{<%= inspect k %>: {old_value, new_value}}
+                changes = %{<%= inspect field %>: {old_value, new_value}}
             end
         <% end %>
     end
