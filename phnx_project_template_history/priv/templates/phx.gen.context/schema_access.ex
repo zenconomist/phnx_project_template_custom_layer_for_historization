@@ -44,20 +44,13 @@
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_<%= schema.singular %>(attrs \\ %{}) do
-    %<%= inspect schema.alias %>{}
-    |> <%= inspect schema.alias %>.changeset(attrs)
-    |> fn changeset ->
-        Repo.transaction(
-            fn ->
-                record = Repo.insert!(changeset)
-                log_changes(record, attrs, :create)
-                insert_scd2_version(record)
-                record
-            end
-        ) #repo transaction end
-    end #fn end
-end
+    def create_<%= schema.singular %>(attrs \\ %{}) do
+        %<%= inspect schema.alias %>{}
+        |> <%= inspect schema.alias %>.changeset(attrs)
+        |> Repo.insert!()
+        |> log_changes(attrs, :create)
+        |> insert_scd2_version()
+    end
 
   @doc """
   Updates a <%= schema.singular %>.
@@ -109,10 +102,23 @@ end
     <%= inspect schema.alias %>.changeset(<%= schema.singular %>, attrs)
   end
 
-  defp log_changes(record, attrs, action) do
-    # Implement logic to insert field log changes
+  defp log_changes(record, old_record, attrs, action) do
+    # iterate over the fields of the record recursively
+    changes = record_changes(record, old_record)
+
     record
   end
+
+    defp record_changes(record, old_record, changes \\ []) do
+        <%= for {field, _type} <- schema.attrs do %>
+            old_value = Map.get(old_record, <%= inspect k %>)
+            new_value = Map.get(record, <%= inspect k %>)
+            if old_value != new_value do
+                changes = [<%= inspect k %>: {old_value, new_value}]
+            end
+        <% end %>
+    end
+
 
   defp insert_scd2_version(record) do
     # Implement logic to insert into SCD2 history table
