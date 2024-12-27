@@ -90,7 +90,6 @@
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(%{deleted_at: DateTime.utc_now()})
     |> Repo.update()
-    |> log_changes(attrs, :delete)
     |> mark_scd2_inactive()
 
   end
@@ -108,22 +107,29 @@
     <%= inspect schema.alias %>.changeset(<%= schema.singular %>, attrs)
   end
 
+  ## this needs refactoring -> if create and delete, only log action, and on create, the new values, on delete, only log the action.
   defp log_changes(record, old_record, attrs, action) do
-    # iterate over the fields of the record recursively
-    changes = record_changes(record, old_record)
-    record = Repo.insert(%ChangeLog{table_name: "<%= schema.table %>", record_id: record.id, changes: changes, action: action})
+    cond do
+      action == :create -> record = log_create(record, action)
+      action == :update -> record = log_update(record, old_record, action)
+      action == :delete -> record = log_delete(record, action)
+    end
     record
   end
 
     defp record_changes(record, old_record, changes \\ []) do
+      changes = %{}
         <%= for {field, _type} <- schema.attrs do %>
             old_value = Map.get(old_record, <%= inspect field %>)
             new_value = Map.get(record, <%= inspect field %>)
-            if old_value != new_value do
-                # how to convert atom field to key in map?
-                # field = String.to_atom(field)
-                changes = %{<%= inspect Atom.to_string(field) %> => {old_value, new_value}}
-            end
+            # update changes if not equal, else no update
+            changes =
+              cond do
+                old_value != new_value ->
+                  Map.put(changes, {<%= inspect Atom.to_string(field) %>, {"old value: #{old_value}", "new_value: #{new_value}"}})
+                true ->
+                  changes
+              end
         <% end %>
     end
 

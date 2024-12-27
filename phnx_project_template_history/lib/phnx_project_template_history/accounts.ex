@@ -72,12 +72,8 @@ defmodule PhnxProjectTemplateHistory.Accounts do
 
   """
   def update_user(%User{} = user, attrs) do
-    IO.puts("user:")
-    IO.inspect(user)
     %PhnxProjectTemplateHistory.Accounts.User{id: id} = user
-    IO.inspect("id: #{id}")
     old_record = get_user!(id)
-    IO.inspect(old_record)
 
     user
     |> User.changeset(attrs)
@@ -123,8 +119,9 @@ defmodule PhnxProjectTemplateHistory.Accounts do
 
 
 
-  defp log_changes(record, old_record, attrs, action) do
+  defp log_changes(record, old_record, attrs, _action) do
     # # iterate over the fields of the record recursively
+    IO.puts("record from log_changes:")
     record
     |> record_changes(old_record)
     |> IO.inspect()
@@ -132,30 +129,39 @@ defmodule PhnxProjectTemplateHistory.Accounts do
     record
   end
 
-    defp record_changes(record, old_record, changes \\ []) do
+    defp record_changes({:ok, new_record}, old_record, changes \\ []) do
       # IO.puts("record from record_changes:")
-      # IO.inspect(record)
+      # IO.inspect(new_record)
       # IO.puts("old_record from record_changes:")
       # IO.inspect(old_record)
+      changes = %{}
 
-      # old_value = Map.get(old_record, :name)
-      # new_value = Map.get(record, :name)
-      # if old_value != new_value do
-      #     # how to convert atom field to key in map?
-      #     # field = String.to_atom(field)
-      #     changes = %{"name" => {old_value, new_value}}
-      # end
+      old_value = Map.get(old_record, :name)
+      new_value = Map.get(new_record, :name)
 
-      # old_value = Map.get(old_record, :email)
-      # new_value = Map.get(record, :email)
-      # if old_value != new_value do
-      #     # how to convert atom field to key in map?
-      #     # field = String.to_atom(field)
-      #     changes = %{"email" => {old_value, new_value}}
-      # end
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, :name, {"old value: #{old_value}", "new_value: #{new_value}"})
+          true ->
+            changes
+        end
 
-      %PhnxProjectTemplateHistory.Accounts.User{password: old_value} = old_record
-      {:ok, %PhnxProjectTemplateHistory.Accounts.User{password: new_value}} = record
+
+
+      old_value = Map.get(old_record, :email)
+      new_value = Map.get(new_record, :email)
+
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, :email, {"old value: #{old_value}", "new_value: #{new_value}"})
+          true ->
+            changes
+        end
+
+      old_value = Map.get(old_record, :password)
+      new_value = Map.get(new_record, :password)
       if old_value != new_value do
           # how to convert atom field to key in map?
           # field = String.to_atom(field)
