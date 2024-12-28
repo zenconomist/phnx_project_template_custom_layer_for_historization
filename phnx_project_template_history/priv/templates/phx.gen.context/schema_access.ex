@@ -50,7 +50,7 @@
         %<%= inspect schema.alias %>{}
         |> <%= inspect schema.alias %>.changeset(attrs)
         |> Repo.insert!()
-        |> log_changes(old_record, attrs, :create)
+        |> log_changes(old_record, :create)
         |> scd2_historize(:create)
     end
 
@@ -73,7 +73,7 @@
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(attrs)
     |> Repo.update()
-    |> log_changes(old_record, attrs, :update)
+    |> log_changes(old_record, :update)
     |> scd2_historize(:update)
   end
 
@@ -96,7 +96,7 @@
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(%{deleted_at: DateTime.utc_now()})
     |> Repo.update()
-    |> log_changes(old_record, attrs, :update)
+    |> log_changes(old_record, :update)
     |> scd2_historize(:delete)
 
   end
@@ -118,25 +118,25 @@
   defp log_changes(record, old_record, action) do
     case action do
       :create ->
-        old_record = %<%= schema.singular %>{}
+        old_record = %<%= schema.alias %>{}
         record
         |> track_record_changes(old_record)
-        |> create_change_log(action)
+        |> create_change_log(record, action)
         |> Logger.info("Created <%= schema.singular %>: #{inspect record}")
       :update ->
         record
         |> track_record_changes(old_record)
-        |> create_change_log(action)
+        |> create_change_log(record, action)
         |> Logger.info("Updated <%= schema.singular %>: #{inspect record}")
       :delete ->
-        create_change_log(action)
+        %{}
+        |> create_change_log(record, action)
         Logger.info("Deleted <%= schema.singular %>: #{inspect record}")
     end
     record
   end
 
-    defp track_record_changes({:ok, record}, old_record, changes \\ []) do
-      changes = %{}
+    defp track_record_changes({:ok, record}, old_record, changes \\ %{}) do
         <%= for {field, _type} <- schema.attrs do %>
             old_value = Map.get(old_record, <%= inspect field %>)
             new_value = Map.get(record, <%= inspect field %>)
@@ -153,7 +153,7 @@
     end
 
 
-    defp create_change_log(changes, action) do
+    defp create_change_log(record, changes, action) do
       case action do
         :create ->
           attrs = Enum.map(changes, fn change ->
