@@ -1,5 +1,7 @@
 
   alias <%= inspect schema.module %>
+  alias <%= inspect schema.module %>FieldLog
+  alias <%= inspect schema.module %>History
 
   @doc """
   Returns the list of <%= schema.plural %>.
@@ -118,7 +120,7 @@
   defp log_changes(record, old_record, action) do
     case action do
       :create ->
-        old_record = %<%= schema.alias %>{}
+        old_record = %<%= inspect schema.alias %>{}
         record
         |> track_record_changes(old_record)
         |> create_change_log(record, action)
@@ -154,9 +156,10 @@
 
 
     defp create_change_log(record, changes, action) do
+      attrs =
       case action do
         :create ->
-          attrs = Enum.map(changes, fn change ->
+          Enum.map(changes, fn change ->
             %{
               table_name: "<%= schema.table %>",
               row_id: record.id,
@@ -169,7 +172,7 @@
             }
           end)
         :update ->
-          attrs = Enum.map(changes, fn change ->
+          Enum.map(changes, fn change ->
             %{
               table_name: "<%= schema.table %>",
               row_id: record.id,
@@ -182,7 +185,7 @@
             }
           end)
         :delete ->
-          attrs = %{
+          %{
             table_name: "<%= schema.table %>",
             row_id: record.id,
             action: action,
