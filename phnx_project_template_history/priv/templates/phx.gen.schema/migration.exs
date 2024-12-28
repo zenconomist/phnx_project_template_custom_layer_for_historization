@@ -14,28 +14,17 @@ defmodule <%= inspect schema.repo %>.Migrations.Create<%= Macro.camelize(schema.
       <%= index %><% end %>
   <% end %>
 
-  
+
     create table(:<%= schema.table %>_history) do
       add :entity_id, references(:<%= schema.table %>, on_delete: :nothing)
       add :dat_from, :utc_datetime
       add :dat_to, :utc_datetime
       add :is_current, :boolean, default: true
+      add :is_deleted, :boolean, default: false
       <%= for {k, v} <- schema.types do %>add :<%= k %>, :<%= v %><%= schema.defaults[k] %>
       <% end %>
       timestamps(<%= if schema.timestamp_type != :naive_datetime, do: "type: #{inspect schema.timestamp_type}" %>)
-  
     end
-
-    create table(:<%= schema.table %>_field_log) do
-      add :entity_id, references(:<%= schema.table %>, on_delete: :nothing)
-      add :field, :string
-      add :old_value, :string
-      add :new_value, :string
-      add :action, :string
-      add :changed_at, :utc_datetime
-      timestamps(<%= if schema.timestamp_type != :naive_datetime, do: "type: #{inspect schema.timestamp_type}" %>)
-    end
-
   end # end of change
 
 end
