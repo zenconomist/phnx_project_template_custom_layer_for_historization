@@ -3,6 +3,9 @@ defmodule PhnxProjectTemplateHistory.Accounts.UserHistory do
   import Ecto.Changeset
 
   schema "users_history" do
+    field :name, :string
+    field :password, :string
+    field :email, :string
     field :dat_from, :utc_datetime
     field :dat_to, :utc_datetime
     field :is_current, :boolean, default: false
@@ -18,7 +21,7 @@ defmodule PhnxProjectTemplateHistory.Accounts.UserHistory do
   @doc false
   def changeset(user_history, attrs) do
     user_history
-    |> cast(attrs, [:dat_from, :dat_to, :is_current, :is_deleted, :time_of_change, :changed_by])
-    |> validate_required([:dat_from, :dat_to, :is_current, :is_deleted, :time_of_change, :changed_by])
+    |> cast(attrs, [:dat_from, :dat_to, :is_current, :is_deleted, :time_of_change, :changed_by, :name, :password, :email])
+    |> validate_required([:dat_from, :dat_to, :is_current, :is_deleted, :time_of_change, :changed_by, :name, :password, :email])
   end
 end
