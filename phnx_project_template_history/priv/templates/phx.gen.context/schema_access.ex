@@ -45,11 +45,13 @@
 
   """
     def create_<%= schema.singular %>(attrs \\ %{}) do
+        old_record = %<%= inspect schema.alias %>{}
+
         %<%= inspect schema.alias %>{}
         |> <%= inspect schema.alias %>.changeset(attrs)
         |> Repo.insert!()
-        |> log_changes(attrs, :create)
-        |> insert_scd2_version()
+        |> log_changes(old_record, attrs, :create)
+        |> scd2_historize(:create)
     end
 
   @doc """
@@ -65,12 +67,14 @@
 
   """
   def update_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>, attrs) do
+    %<%= inspect schema.alias %>{id: id} = <%= schema.singular %>
+    old_record = get_<%= schema.singular %>!(id)
+
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(attrs)
     |> Repo.update()
-    |> log_changes(attrs, :update)
-    |> mark_scd2_inactive()
-    |> insert_scd2_version()
+    |> log_changes(old_record, attrs, :update)
+    |> scd2_historize(:update)
   end
 
   @doc """
@@ -86,11 +90,14 @@
 
   """
   def delete_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>) do
+    old_record = %<%= inspect schema.alias %>{}
+
     # repo update the record's deleted_at field to the current time
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(%{deleted_at: DateTime.utc_now()})
     |> Repo.update()
-    |> mark_scd2_inactive()
+    |> log_changes(old_record, attrs, :update)
+    |> scd2_historize(:delete)
 
   end
 
@@ -108,16 +115,27 @@
   end
 
   ## this needs refactoring -> if create and delete, only log action, and on create, the new values, on delete, only log the action.
-  defp log_changes(record, old_record, attrs, action) do
-    cond do
-      action == :create -> record = log_create(record, action)
-      action == :update -> record = log_update(record, old_record, action)
-      action == :delete -> record = log_delete(record, action)
+  defp log_changes(record, old_record, action) do
+    case action do
+      :create ->
+        old_record = %<%= schema.singular %>{}
+        record
+        |> track_record_changes(old_record)
+        |> create_change_log(action)
+        |> Logger.info("Created <%= schema.singular %>: #{inspect record}")
+      :update ->
+        record
+        |> track_record_changes(old_record)
+        |> create_change_log(action)
+        |> Logger.info("Updated <%= schema.singular %>: #{inspect record}")
+      :delete ->
+        create_change_log(action)
+        Logger.info("Deleted <%= schema.singular %>: #{inspect record}")
     end
     record
   end
 
-    defp record_changes(record, old_record, changes \\ []) do
+    defp track_record_changes({:ok, record}, old_record, changes \\ []) do
       changes = %{}
         <%= for {field, _type} <- schema.attrs do %>
             old_value = Map.get(old_record, <%= inspect field %>)
@@ -131,16 +149,56 @@
                   changes
               end
         <% end %>
+      changes
     end
 
 
+    defp create_change_log(changes, action) do
+      case action do
+        :create ->
+          attrs = Enum.map(changes, fn change ->
+            %{
+              table_name: "<%= schema.table %>",
+              row_id: record.id,
+              action: action,
+              field_name: change.key,
+              old_value: nil,
+              new_value: change.value,
+              time_of_change: DateTime.utc_now(),
+              changed_by: "system"
+            }
+          end)
+        :update ->
+          attrs = Enum.map(changes, fn change ->
+            %{
+              table_name: "<%= schema.table %>",
+              row_id: record.id,
+              action: action,
+              field_name: change.key,
+              old_value: change.value[0],
+              new_value: change.value[1],
+              time_of_change: DateTime.utc_now(),
+              changed_by: "system"
+            }
+          end)
+        :delete ->
+          attrs = %{
+            table_name: "<%= schema.table %>",
+            row_id: record.id,
+            action: action,
+            field_name: nil,
+            old_value: nil,
+            new_value: nil,
+            time_of_change: DateTime.utc_now(),
+            changed_by: "system"
+          }
+        end
+      %<%= inspect schema.alias %>FieldLog{}
+      |> <%= inspect schema.alias %>FieldLog.changeset(attrs)
+      |> Repo.insert()
+    end
 
-  defp insert_scd2_version(record) do
+  defp scd2_historize(record, action) do
     # Implement logic to insert into SCD2 history table
-    record
-  end
-
-  defp mark_scd2_inactive(record) do
-    # Implement logic to mark SCD2 record as inactive
     record
   end

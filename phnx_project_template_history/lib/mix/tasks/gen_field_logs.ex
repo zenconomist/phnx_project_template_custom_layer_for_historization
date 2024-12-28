@@ -17,6 +17,7 @@ defmodule Mix.Tasks.GenFieldLogs do
       "#{context_name}.#{schema_name}FieldLog",
       log_table_name,
       "row_id:integer",
+      "action:string",
       "field_name:string",
       "old_value:string",
       "new_value:string",
