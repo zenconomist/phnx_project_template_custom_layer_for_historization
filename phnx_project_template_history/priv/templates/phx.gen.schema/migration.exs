@@ -13,8 +13,6 @@ defmodule <%= inspect schema.repo %>.Migrations.Create<%= Macro.camelize(schema.
   <%= if Enum.any?(schema.indexes) do %><%= for index <- schema.indexes do %>
       <%= index %><% end %>
   <% end %>
-
-
   end # end of change
 
 end
