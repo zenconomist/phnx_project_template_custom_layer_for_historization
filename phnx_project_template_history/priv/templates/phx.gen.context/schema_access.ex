@@ -49,11 +49,14 @@
     def create_<%= schema.singular %>(attrs \\ %{}) do
         # old_record = %<%= inspect schema.alias %>{}
 
-        %<%= inspect schema.alias %>{}
-        |> <%= inspect schema.alias %>.changeset(attrs)
-        |> Repo.insert!()
-        # |> log_changes(old_record, :create)
-        # |> scd2_historize(:create)
+        new_record =
+          %<%= inspect schema.alias %>{}
+          |> <%= inspect schema.alias %>.changeset(attrs)
+          |> Repo.insert!()
+          # |> log_changes(old_record, :create)
+          # |> scd2_historize(:create)
+
+        {:ok, new_record}
     end
 
   @doc """
@@ -157,10 +160,9 @@
 
   #   defp create_change_log(changes, record, action) do
   #     cond do
-  #       changes == %{} ->
+  #       changes == %{} && action != :delete ->
   #         IO.puts("No changes to log")
   #       true ->
-  #         attrs =
   #           case action do
   #             :create ->
   #               Enum.map(changes, fn {key, value} ->
@@ -193,6 +195,7 @@
   #               end)
   #             :delete ->
   #               {:ok, new_record} = record
+  #               # no need for Enum.map as there is only one record - no changes tracked
   #               %{
   #                 table_name: "<%= schema.table %>",
   #                 row_id: Map.get(new_record, :id),
