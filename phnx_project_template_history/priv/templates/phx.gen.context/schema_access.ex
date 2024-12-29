@@ -129,8 +129,9 @@
   #       |> create_change_log(record, action)
   #       # |> Logger.info("Created <%= schema.singular %>: #{inspect record}")
   #     :update ->
-  #       record
-  #       |> track_record_changes(old_record)
+        # {:ok, new_record} = record
+        # new_record
+#       |> track_record_changes(old_record)
   #       |> create_change_log(record, action)
   #       # |> Logger.info("Updated <%= schema.singular %>: #{inspect record}")
   #     :delete ->
@@ -166,13 +167,13 @@
   #           case action do
   #             :create ->
   #               Enum.map(changes, fn {key, value} ->
-  #                 {old_val, new_val} = value
+  #                 {_old_val, new_val} = value
   #                 %{
   #                   table_name: "<%= schema.table %>",
   #                   row_id: Map.get(record, :id),
   #                   action: Atom.to_string(action),
   #                   field_name: key,
-  #                   old_value: old_val,
+  #                   old_value: "N/A",
   #                   new_value: new_val,
   #                   time_of_change: DateTime.utc_now(),
   #                   changed_by: "system"
@@ -200,9 +201,9 @@
   #                 table_name: "<%= schema.table %>",
   #                 row_id: Map.get(new_record, :id),
   #                 action: Atom.to_string(action),
-  #                 field_name: nil,
-  #                 old_value: nil,
-  #                 new_value: nil,
+  #                 field_name: "N/A",
+  #                 old_value: "N/A",
+  #                 new_value: "N/A",
   #                 time_of_change: DateTime.utc_now(),
   #                 changed_by: "system"
   #               } |> log_changes_in_repo()
