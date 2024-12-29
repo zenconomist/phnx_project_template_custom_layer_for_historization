@@ -80,6 +80,7 @@ defmodule PhnxProjectTemplateHistory.Accounts do
     %User{id: id} = user
     old_record = get_user!(id)
 
+    IO.puts("attrs: #{inspect attrs}")
     user
     |> User.changeset(attrs)
     |> Repo.update()
@@ -215,37 +216,42 @@ defmodule PhnxProjectTemplateHistory.Accounts do
       attrs =
         case action do
           :create ->
-            Enum.map(changes, fn change ->
-              %{
-                table_name: "users",
-                row_id: record.id,
-                action: action,
-                field_name: change.key,
-                old_value: nil,
-                new_value: change.value,
-                time_of_change: DateTime.utc_now(),
-                changed_by: "system"
-              }
-            end)
+            # Enum.map(changes, fn change ->
+            #   %{
+            #     table_name: "users",
+            #     row_id: record.id,
+            #     action: action,
+            #     field_name: change,
+            #     old_value: nil,
+            #     new_value: change.value,
+            #     time_of_change: DateTime.utc_now(),
+            #     changed_by: "system"
+            #   }
+            # end)
+            changes
           :update ->
-            case changes do
-              %{} -> %{}
-              _ ->
-                Enum.map(changes, fn change ->
-                  IO.inspect(change)
-                  {old_val, new_val} = change
-                  [
+            # case changes do
+            #   %{} ->
+            #     IO.puts("No changes")
+            #     %{}
+            #   _ ->
+                Enum.map(changes, fn {key, value} ->
+                  {:ok, new_record} = record
+                  # IO.puts("within enum map #{inspect change}")
+                   {old_val, new_val} = value
+                  %{
                     table_name: "users",
-                    row_id: Map.get(record, :id),
-                    action: action,
-                    field_name: change.key,
+                    row_id: Map.get(new_record, :id),
+                    action: Atom.to_string(action),
+                    field_name: key,
                     old_value: old_val,
                     new_value: new_val,
                     time_of_change: DateTime.utc_now(),
                     changed_by: "system"
-                  ]
+                  }
                 end)
-            end
+
+            # end
           :delete ->
             [
               table_name: "users",
@@ -258,9 +264,12 @@ defmodule PhnxProjectTemplateHistory.Accounts do
               changed_by: "system"
             ]
           end
-      IO.inspect(attrs)
+      {:ok, attrs_map} =
+      Enum.fetch(attrs, 0)
+      |> IO.inspect()
+
       %UserFieldLog{}
-      |> UserFieldLog.changeset(attrs)
+      |> UserFieldLog.changeset(attrs_map)
       |> IO.inspect()
       |> Repo.insert()
     end
