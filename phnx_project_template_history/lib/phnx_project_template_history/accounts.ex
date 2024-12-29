@@ -107,7 +107,7 @@ defmodule PhnxProjectTemplateHistory.Accounts do
     user
     |> User.changeset(%{deleted_at: DateTime.utc_now()})
     |> Repo.update()
-    |> log_changes(old_record, :update)
+    |> log_changes(old_record, :delete)
     |> scd2_historize(:delete)
 
   end
@@ -149,130 +149,123 @@ defmodule PhnxProjectTemplateHistory.Accounts do
   end
 
     defp track_record_changes(record, old_record, changes \\ %{}) do
+      old_value = Map.get(old_record, :name)
+      new_value = Map.get(record, :name)
+      # update changes if not equal, else no update
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, "name", {"old value: #{old_value}", "new_value: #{new_value}"})
+          true ->
+            changes
+        end
 
-            old_value = Map.get(old_record, :name)
-            new_value = Map.get(record, :name)
-            # update changes if not equal, else no update
-            changes =
-              cond do
-                old_value != new_value ->
-                  Map.put(changes, "name", {"old value: #{old_value}", "new_value: #{new_value}"})
-                true ->
-                  changes
-              end
+      old_value = Map.get(old_record, :email)
+      new_value = Map.get(record, :email)
+      # update changes if not equal, else no update
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, "email", {"old value: #{old_value}", "new_value: #{new_value}"})
+          true ->
+            changes
+        end
 
-            old_value = Map.get(old_record, :email)
-            new_value = Map.get(record, :email)
-            # update changes if not equal, else no update
-            changes =
-              cond do
-                old_value != new_value ->
-                  Map.put(changes, "email", {"old value: #{old_value}", "new_value: #{new_value}"})
-                true ->
-                  changes
-              end
+      old_value = Map.get(old_record, :username)
+      new_value = Map.get(record, :username)
+      # update changes if not equal, else no update
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, "username", {"old value: #{old_value}", "new_value: #{new_value}"})
+          true ->
+            changes
+        end
 
-            old_value = Map.get(old_record, :username)
-            new_value = Map.get(record, :username)
-            # update changes if not equal, else no update
-            changes =
-              cond do
-                old_value != new_value ->
-                  Map.put(changes, "username", {"old value: #{old_value}", "new_value: #{new_value}"})
-                true ->
-                  changes
-              end
+      old_value = Map.get(old_record, :phone)
+      new_value = Map.get(record, :phone)
+      # update changes if not equal, else no update
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, "phone", {"old value: #{old_value}", "new_value: #{new_value}"})
+          true ->
+            changes
+        end
 
-            old_value = Map.get(old_record, :phone)
-            new_value = Map.get(record, :phone)
-            # update changes if not equal, else no update
-            changes =
-              cond do
-                old_value != new_value ->
-                  Map.put(changes, "phone", {"old value: #{old_value}", "new_value: #{new_value}"})
-                true ->
-                  changes
-              end
-
-            old_value = Map.get(old_record, :password)
-            new_value = Map.get(record, :password)
-            # update changes if not equal, else no update
-            changes =
-              cond do
-                old_value != new_value ->
-                  Map.put(changes, "password", {"old value: #{old_value}", "new_value: #{new_value}"})
-                true ->
-                  changes
-              end
+      old_value = Map.get(old_record, :password)
+      new_value = Map.get(record, :password)
+      # update changes if not equal, else no update
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, "password", {"old value: #{old_value}", "new_value: #{new_value}"})
+          true ->
+            changes
+        end
 
       changes
     end
 
 
     defp create_change_log(changes, record, action) do
-      IO.puts("Changes: #{inspect changes}")
-      IO.puts("Record: #{inspect record}")
-      IO.puts("Action: #{inspect action}")
-      attrs =
-        case action do
-          :create ->
-            # Enum.map(changes, fn change ->
-            #   %{
-            #     table_name: "users",
-            #     row_id: record.id,
-            #     action: action,
-            #     field_name: change,
-            #     old_value: nil,
-            #     new_value: change.value,
-            #     time_of_change: DateTime.utc_now(),
-            #     changed_by: "system"
-            #   }
-            # end)
-            changes
-          :update ->
-            # case changes do
-            #   %{} ->
-            #     IO.puts("No changes")
-            #     %{}
-            #   _ ->
-                Enum.map(changes, fn {key, value} ->
-                  {:ok, new_record} = record
-                  # IO.puts("within enum map #{inspect change}")
-                   {old_val, new_val} = value
-                  %{
-                    table_name: "users",
-                    row_id: Map.get(new_record, :id),
-                    action: Atom.to_string(action),
-                    field_name: key,
-                    old_value: old_val,
-                    new_value: new_val,
-                    time_of_change: DateTime.utc_now(),
-                    changed_by: "system"
-                  }
-                end)
-
-            # end
-          :delete ->
-            [
-              table_name: "users",
-              row_id: record.id,
-              action: action,
-              field_name: nil,
-              old_value: nil,
-              new_value: nil,
-              time_of_change: DateTime.utc_now(),
-              changed_by: "system"
-            ]
-          end
-      {:ok, attrs_map} =
-      Enum.fetch(attrs, 0)
-      |> IO.inspect()
-
-      %UserFieldLog{}
-      |> UserFieldLog.changeset(attrs_map)
-      |> IO.inspect()
-      |> Repo.insert()
+      cond do
+        changes == %{} && action != :delete ->
+          IO.puts("No changes to log")
+        true ->
+          case action do
+            :create ->
+              Enum.map(changes, fn {key, value} ->
+                {old_val, new_val} = value
+                %{
+                  table_name: "users",
+                  row_id: Map.get(record, :id),
+                  action: Atom.to_string(action),
+                  field_name: key,
+                  old_value: old_val,
+                  new_value: new_val,
+                  time_of_change: DateTime.utc_now(),
+                  changed_by: "system"
+                } |> log_changes_in_repo()
+              end)
+            :update ->
+              {:ok, new_record} = record
+              Enum.map(changes, fn {key, value} ->
+                {old_val, new_val} = value
+                %{
+                  table_name: "users",
+                  row_id: Map.get(new_record, :id),
+                  action: Atom.to_string(action),
+                  field_name: key,
+                  old_value: old_val,
+                  new_value: new_val,
+                  time_of_change: DateTime.utc_now(),
+                  changed_by: "system"
+                } |> log_changes_in_repo()
+              end)
+            :delete ->
+              {:ok, new_record} = record
+              %{
+                table_name: "users",
+                row_id: Map.get(new_record, :id),
+                action: Atom.to_string(action),
+                field_name: "N/A",
+                old_value: "N/A",
+                new_value: "N/A",
+                time_of_change: DateTime.utc_now(),
+                changed_by: "system"
+              } |> log_changes_in_repo()
+          end # end of case action
+      end # end of cond
+      record
     end
+
+
+  defp log_changes_in_repo(attrs) do
+    %UserFieldLog{}
+    |> UserFieldLog.changeset(attrs)
+    |> Repo.insert()
+  end
 
   defp scd2_historize(record, action) do
     # Implement logic to insert into SCD2 history table

@@ -16,7 +16,7 @@ defmodule <%= inspect schema.module %> do
   @doc false
   def changeset(<%= schema.singular %>, attrs) do
     <%= schema.singular %>
-    |> cast(attrs, [<%= Enum.map_join(schema.attrs, ", ", &inspect(elem(&1, 0))) %>])
+    |> cast(attrs, [<%= Enum.map_join(schema.attrs, ", ", &inspect(elem(&1, 0))) %>, :deleted_at])
     |> validate_required([<%= Enum.map_join(Mix.Phoenix.Schema.required_fields(schema), ", ", &inspect(elem(&1, 0))) %>])
 <%= for k <- schema.uniques do %>    |> unique_constraint(<%= inspect k %>)
 <% end %>  end
