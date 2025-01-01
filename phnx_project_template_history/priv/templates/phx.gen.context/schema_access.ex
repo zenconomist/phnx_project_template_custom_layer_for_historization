@@ -47,14 +47,14 @@
 
   """
     def create_<%= schema.singular %>(attrs \\ %{}) do
-        # old_record = %<%= inspect schema.alias %>{}
+        old_record = %<%= inspect schema.alias %>{}
 
         new_record =
           %<%= inspect schema.alias %>{}
           |> <%= inspect schema.alias %>.changeset(attrs)
           |> Repo.insert!()
-          # |> log_changes(old_record, :create)
-          # |> scd2_historize(:create)
+          |> log_changes(old_record, :create)
+          |> scd2_historize(:create)
 
         {:ok, new_record}
     end
@@ -72,14 +72,14 @@
 
   """
   def update_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>, attrs) do
-    # %<%= inspect schema.alias %>{id: id} = <%= schema.singular %>
-    # old_record = get_<%= schema.singular %>!(id)
+    %<%= inspect schema.alias %>{id: id} = <%= schema.singular %>
+    old_record = get_<%= schema.singular %>!(id)
 
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(attrs)
     |> Repo.update()
-    # |> log_changes(old_record, :update)
-    # |> scd2_historize(:update)
+    |> log_changes(old_record, :update)
+    |> scd2_historize(:update)
   end
 
   @doc """
@@ -95,14 +95,14 @@
 
   """
   def delete_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>) do
-    # old_record = %<%= inspect schema.alias %>{}
+    old_record = %<%= inspect schema.alias %>{}
 
-    ## repo update the record's deleted_at field to the current time
+    # repo update the record's deleted_at field to the current time
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(%{deleted_at: DateTime.utc_now()})
     |> Repo.update()
-    # |> log_changes(old_record, :delete)
-    # |> scd2_historize(:delete)
+    |> log_changes(old_record, :delete)
+    |> scd2_historize(:delete)
 
   end
 
@@ -120,105 +120,105 @@
   end
 
 
-  # defp log_changes(record, old_record, action) do
-  #   case action do
-  #     :create ->
-  #       old_record = %<%= inspect schema.alias %>{}
-  #       record
-  #       |> track_record_changes(old_record)
-  #       |> create_change_log(record, action)
-  #       # |> Logger.info("Created <%= schema.singular %>: #{inspect record}")
-  #     :update ->
-        # {:ok, new_record} = record
-        # new_record
-#       |> track_record_changes(old_record)
-  #       |> create_change_log(record, action)
-  #       # |> Logger.info("Updated <%= schema.singular %>: #{inspect record}")
-  #     :delete ->
-  #       %{}
-  #       |> create_change_log(record, action)
-  #       # Logger.info("Deleted <%= schema.singular %>: #{inspect record}")
-  #   end
-  #   record
-  # end
+  defp log_changes(record, old_record, action) do
+    case action do
+      :create ->
+        old_record = %<%= inspect schema.alias %>{}
+        record
+        |> track_record_changes(old_record)
+        |> create_change_log(record, action)
+        # |> Logger.info("Created <%= schema.singular %>: #{inspect record}")
+      :update ->
+        {:ok, new_record} = record
+        new_record
+      |> track_record_changes(old_record)
+        |> create_change_log(record, action)
+        # |> Logger.info("Updated <%= schema.singular %>: #{inspect record}")
+      :delete ->
+        %{}
+        |> create_change_log(record, action)
+        # Logger.info("Deleted <%= schema.singular %>: #{inspect record}")
+    end
+    record
+  end
 
-  #   defp track_record_changes(record, old_record, changes \\ %{}) do
-  #   <%= for {field, _type} <- schema.attrs do %>
-  #     old_value = Map.get(old_record, <%= inspect field %>)
-  #     new_value = Map.get(record, <%= inspect field %>)
-  #     # update changes if not equal, else no update
-  #     changes =
-  #       cond do
-  #         old_value != new_value ->
-  #           Map.put(changes, <%= inspect Atom.to_string(field) %>, {old_value, new_value})
-  #         true ->
-  #           changes
-  #       end
-  #   <% end %>
-  #     changes
-  #   end
+    defp track_record_changes(record, old_record, changes \\ %{}) do
+    <%= for {field, _type} <- schema.attrs do %>
+      old_value = Map.get(old_record, <%= inspect field %>)
+      new_value = Map.get(record, <%= inspect field %>)
+      # update changes if not equal, else no update
+      changes =
+        cond do
+          old_value != new_value ->
+            Map.put(changes, <%= inspect Atom.to_string(field) %>, {old_value, new_value})
+          true ->
+            changes
+        end
+    <% end %>
+      changes
+    end
 
 
-  #   defp create_change_log(changes, record, action) do
-  #     cond do
-  #       changes == %{} && action != :delete ->
-  #         IO.puts("No changes to log")
-  #       true ->
-  #           case action do
-  #             :create ->
-  #               Enum.map(changes, fn {key, value} ->
-  #                 {_old_val, new_val} = value
-  #                 %{
-  #                   table_name: "<%= schema.table %>",
-  #                   row_id: Map.get(record, :id),
-  #                   action: Atom.to_string(action),
-  #                   field_name: key,
-  #                   old_value: "N/A",
-  #                   new_value: new_val,
-  #                   time_of_change: DateTime.utc_now(),
-  #                   changed_by: "system"
-  #                 } |> log_changes_in_repo()
-  #               end)
-  #             :update ->
-  #               {:ok, new_record} = record
-  #               Enum.map(changes, fn {key, value} ->
-  #                 {old_val, new_val} = value
-  #                 %{
-  #                   table_name: "<%= schema.table %>",
-  #                   row_id: Map.get(new_record, :id),
-  #                   action: Atom.to_string(action),
-  #                   field_name: key,
-  #                   old_value: old_val,
-  #                   new_value: new_val,
-  #                   time_of_change: DateTime.utc_now(),
-  #                   changed_by: "system"
-  #                 } |> log_changes_in_repo()
-  #               end)
-  #             :delete ->
-  #               {:ok, new_record} = record
-  #               # no need for Enum.map as there is only one record - no changes tracked
-  #               %{
-  #                 table_name: "<%= schema.table %>",
-  #                 row_id: Map.get(new_record, :id),
-  #                 action: Atom.to_string(action),
-  #                 field_name: "N/A",
-  #                 old_value: "N/A",
-  #                 new_value: "N/A",
-  #                 time_of_change: DateTime.utc_now(),
-  #                 changed_by: "system"
-  #               } |> log_changes_in_repo()
-  #           end # end of case action
-  #     end # end of cond
-  #         record
-  #   end
+    defp create_change_log(changes, record, action) do
+      cond do
+        changes == %{} && action != :delete ->
+          IO.puts("No changes to log")
+        true ->
+            case action do
+              :create ->
+                Enum.map(changes, fn {key, value} ->
+                  {_old_val, new_val} = value
+                  %{
+                    table_name: "<%= schema.table %>",
+                    row_id: Map.get(record, :id),
+                    action: Atom.to_string(action),
+                    field_name: key,
+                    old_value: "N/A",
+                    new_value: new_val,
+                    time_of_change: DateTime.utc_now(),
+                    changed_by: "system"
+                  } |> log_changes_in_repo()
+                end)
+              :update ->
+                {:ok, new_record} = record
+                Enum.map(changes, fn {key, value} ->
+                  {old_val, new_val} = value
+                  %{
+                    table_name: "<%= schema.table %>",
+                    row_id: Map.get(new_record, :id),
+                    action: Atom.to_string(action),
+                    field_name: key,
+                    old_value: old_val,
+                    new_value: new_val,
+                    time_of_change: DateTime.utc_now(),
+                    changed_by: "system"
+                  } |> log_changes_in_repo()
+                end)
+              :delete ->
+                {:ok, new_record} = record
+                # no need for Enum.map as there is only one record - no changes tracked
+                %{
+                  table_name: "<%= schema.table %>",
+                  row_id: Map.get(new_record, :id),
+                  action: Atom.to_string(action),
+                  field_name: "N/A",
+                  old_value: "N/A",
+                  new_value: "N/A",
+                  time_of_change: DateTime.utc_now(),
+                  changed_by: "system"
+                } |> log_changes_in_repo()
+            end # end of case action
+      end # end of cond
+          record
+    end
 
-  #   defp log_changes_in_repo(attrs) do
-  #     %<%= inspect schema.alias %>FieldLog{}
-  #     |> <%= inspect schema.alias %>FieldLog.changeset(attrs)
-  #     |> Repo.insert()
-  #   end
+    defp log_changes_in_repo(attrs) do
+      %<%= inspect schema.alias %>FieldLog{}
+      |> <%= inspect schema.alias %>FieldLog.changeset(attrs)
+      |> Repo.insert()
+    end
 
-  # defp scd2_historize(record, action) do
-  #   # Implement logic to insert into SCD2 history table
-  #   record
-  # end
+  defp scd2_historize(record, action) do
+    # Implement logic to insert into SCD2 history table
+    record
+  end

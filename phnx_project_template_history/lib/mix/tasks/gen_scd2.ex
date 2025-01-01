@@ -33,7 +33,7 @@ defmodule Mix.Tasks.GenScd2 do
     Mix.Task.run("phx.gen.schema", [
       "#{context_name}.#{schema_name}History",
       log_table_name,
-      "entity_id:references:#{table_name}",
+      "entity_id:integer",
       "dat_from:utc_datetime",
       "dat_to:utc_datetime",
       "is_current:boolean",
