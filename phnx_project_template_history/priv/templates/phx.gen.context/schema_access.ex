@@ -97,7 +97,7 @@
   def delete_<%= schema.singular %>(%<%= inspect schema.alias %>{} = <%= schema.singular %>) do
     # old_record = %<%= inspect schema.alias %>{}
 
-    # repo update the record's deleted_at field to the current time
+    ## repo update the record's deleted_at field to the current time
     <%= schema.singular %>
     |> <%= inspect schema.alias %>.changeset(%{deleted_at: DateTime.utc_now()})
     |> Repo.update()

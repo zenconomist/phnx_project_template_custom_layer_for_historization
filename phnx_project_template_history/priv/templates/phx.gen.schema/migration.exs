@@ -10,6 +10,8 @@ defmodule <%= inspect schema.repo %>.Migrations.Create<%= Macro.camelize(schema.
       timestamps(<%= if schema.timestamp_type != :naive_datetime, do: "type: #{inspect schema.timestamp_type}" %>)
       add :deleted_at, :utc_datetime
       end
+
+  <%= IO.inspect(schema.indexes, label: "schema.indexes") %>  # Print the overridden contents of schema.indexes
   <%= if Enum.any?(schema.indexes) do %><%= for index <- schema.indexes do %>
       <%= index %><% end %>
   <% end %>
