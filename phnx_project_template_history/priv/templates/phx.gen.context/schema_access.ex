@@ -234,8 +234,8 @@
           |> Map.put(:changed_by, "system")
           |> Enum.into(%{}, fn {k, v} -> {String.to_atom(to_string(k)), v} end)  # Ensure all keys are atoms
 
-          %UserHistory{}
-          |> UserHistory.changeset(extended_attrs)
+          %<%= inspect schema.alias %>History{}
+          |> <%= inspect schema.alias %>History.changeset(extended_attrs)
           |> IO.inspect()
           |> Repo.insert()
 
@@ -243,8 +243,8 @@
           {:ok, updated_scd1_record} = record
 
           # Update the current record to be non-current
-          Repo.one(from s in UserHistory, where: s.entity_id == ^Map.get(updated_scd1_record, :id) and s.is_current == true)
-            |> UserHistory.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: false, changed_by: "system", time_of_change: DateTime.utc_now()})
+          Repo.one(from s in <%= inspect schema.alias %>History, where: s.entity_id == ^Map.get(updated_scd1_record, :id) and s.is_current == true)
+            |> <%= inspect schema.alias %>History.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: false, changed_by: "system", time_of_change: DateTime.utc_now()})
             |> Repo.update()
 
           # Insert a new record with the updated values
@@ -258,15 +258,15 @@
             |> Map.put(:changed_by, "system")
             |> Enum.into(%{}, fn {k, v} -> {String.to_atom(to_string(k)), v} end)  # Ensure all keys are atoms
 
-            %UserHistory{}
-            |> UserHistory.changeset(extended_attrs)
+            %<%= inspect schema.alias %>History{}
+            |> <%= inspect schema.alias %>History.changeset(extended_attrs)
             |> Repo.insert()
 
         :delete ->
           {:ok, updated_scd1_record} = record
 
-          Repo.one(from s in UserHistory, where: s.entity_id == ^Map.get(updated_scd1_record, :id) and s.is_current == true)
-            |> UserHistory.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: true, changed_by: "system", time_of_change: DateTime.utc_now(), deleted_at: DateTime.utc_now()})
+          Repo.one(from s in <%= inspect schema.alias %>History, where: s.entity_id == ^Map.get(updated_scd1_record, :id) and s.is_current == true)
+            |> <%= inspect schema.alias %>History.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: true, changed_by: "system", time_of_change: DateTime.utc_now(), deleted_at: DateTime.utc_now()})
             |> Repo.update()
       end
 
