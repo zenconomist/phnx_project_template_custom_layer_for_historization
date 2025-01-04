@@ -159,58 +159,71 @@
     end
 
 
-    defp create_change_log(changes, record, action) do
-      cond do
-        changes == %{} && action != :delete ->
-          IO.puts("No changes to log")
-        true ->
-            case action do
-              :create ->
-                Enum.map(changes, fn {key, value} ->
-                  {_old_val, new_val} = value
-                  %{
-                    table_name: "<%= schema.table %>",
-                    row_id: Map.get(record, :id),
-                    action: Atom.to_string(action),
-                    field_name: key,
-                    old_value: "N/A",
-                    new_value: new_val,
-                    time_of_change: DateTime.utc_now(),
-                    changed_by: "system"
-                  } |> log_changes_in_repo()
-                end)
-              :update ->
-                {:ok, new_record} = record
-                Enum.map(changes, fn {key, value} ->
-                  {old_val, new_val} = value
-                  %{
-                    table_name: "<%= schema.table %>",
-                    row_id: Map.get(new_record, :id),
-                    action: Atom.to_string(action),
-                    field_name: key,
-                    old_value: old_val,
-                    new_value: new_val,
-                    time_of_change: DateTime.utc_now(),
-                    changed_by: "system"
-                  } |> log_changes_in_repo()
-                end)
-              :delete ->
-                {:ok, new_record} = record
-                # no need for Enum.map as there is only one record - no changes tracked
-                %{
-                  table_name: "<%= schema.table %>",
-                  row_id: Map.get(new_record, :id),
-                  action: Atom.to_string(action),
-                  field_name: "N/A",
-                  old_value: "N/A",
-                  new_value: "N/A",
-                  time_of_change: DateTime.utc_now(),
-                  changed_by: "system"
-                } |> log_changes_in_repo()
-            end # end of case action
-      end # end of cond
-          record
+    @doc """
+    Create a change log for a record.
+    """
+
+    ## if there are no changes and the action is not delete
+    defp create_change_log(%{}, record, action) when action != :delete do
+      IO.puts("No changes to log")
+      record
     end
+
+
+    ## on create
+    defp create_change_log(changes, record, :create) do
+      Enum.map(changes, fn {key, value} ->
+        {_old_val, new_val} = value
+        %{
+          table_name: "<%= schema.table %>",
+          row_id: Map.get(record, :id),
+          action: "create",
+          field_name: key,
+          old_value: "N/A",
+          new_value: new_val,
+          time_of_change: DateTime.utc_now(),
+          changed_by: "system"
+        } |> log_changes_in_repo()
+      end)
+      record
+    end
+
+    ## on update
+    defp create_change_log(changes, record, :update) do
+      {:ok, new_record} = record
+      Enum.map(changes, fn {key, value} ->
+        {old_val, new_val} = value
+        %{
+          table_name: "<%= schema.table %>",
+          row_id: Map.get(new_record, :id),
+          action: "update",
+          field_name: key,
+          old_value: old_val,
+          new_value: new_val,
+          time_of_change: DateTime.utc_now(),
+          changed_by: "system"
+        } |> log_changes_in_repo()
+      end)
+      record
+    end
+
+    ## on delete
+    defp create_change_log(changes, record, :delete) do
+      {:ok, new_record} = record
+      # no need for Enum.map as there is only one record - no changes tracked
+      %{
+        table_name: "<%= schema.table %>",
+        row_id: Map.get(new_record, :id),
+        action: "delete",
+        field_name: "N/A",
+        old_value: "N/A",
+        new_value: "N/A",
+        time_of_change: DateTime.utc_now(),
+        changed_by: "system"
+      } |> log_changes_in_repo()
+      record
+    end
+
 
     defp log_changes_in_repo(attrs) do
       %<%= inspect schema.alias %>FieldLog{}
