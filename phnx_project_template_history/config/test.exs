@@ -9,6 +9,7 @@ config :phnx_project_template_history, PhnxProjectTemplateHistory.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
+  port: 5459,
   database: "phnx_project_template_history_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
