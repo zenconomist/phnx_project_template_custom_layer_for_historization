@@ -3,7 +3,7 @@
   alias <%= inspect schema.module %>FieldLog
   alias <%= inspect schema.module %>History
 
-  @last_date = ~U[2099-12-31 23:59:59Z]
+  @last_date ~U[2099-12-31 23:59:59Z]
 
   @doc """
   Returns the list of <%= schema.plural %>.
@@ -118,6 +118,10 @@
     <%= inspect schema.alias %>.changeset(<%= schema.singular %>, attrs)
   end
 
+  defp log_changes({:error, _} = record, _old_record, _action) do
+    IO.puts("Error in changeset")
+    record
+  end
 
   defp log_changes({:ok, new_record} = record, old_record, action) do
     case action do
