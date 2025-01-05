@@ -164,7 +164,7 @@
     """
 
     ## if there are no changes and the action is not delete
-    defp create_change_log(%{}, record, action) when action != :delete do
+    defp create_change_log(changes, record, action) when Kernel.map_size(changes) == 0 and action != :delete do
       IO.puts("No changes to log")
       record
     end
