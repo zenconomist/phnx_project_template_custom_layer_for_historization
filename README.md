@@ -2,6 +2,7 @@
 Modifying the default phoenix project with different Repo handling - adding default historization features and wrapping in a service layer
 
 modifying the generators with following features:
+
 	- modify table generation, with adding the deleted_at timestamp field to every table for soft deletes
 	- modify get and get_all repo functions to exclude soft-deleted records
 	- add field_log and history tables automatically for every table
@@ -33,6 +34,7 @@ In the bash script:
 1. execute custom mix task: gen_field_logs.ex - not necessarily so, but I execute it with the same entity fields, that were used in the phx.gen.html
 2. execute custom mix task: gen_scd2.ex - here, it MUST be with the same fields than in the html generator
 3. execute mix phx.gen.[...] (I used html, so mix phx.gen.html for this, but I didn't override the html part in this template project, and you may use other generators for your purpose.
+4. always add 1 second sleep between the generator commands, since if migrations are generated with the same timestamp it get's you some headaches.
 
 ### Manual TODO for unique constraints!
 
