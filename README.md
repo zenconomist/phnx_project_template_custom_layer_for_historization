@@ -4,12 +4,9 @@ Modifying the default phoenix project with different Repo handling - adding defa
 modifying the generators with following features:
 
 	- modify table generation, with adding the deleted_at timestamp field to every table for soft deletes
-	- modify get and get_all repo functions to exclude soft-deleted records
-	- add field_log and history tables automatically for every table
-	- within a transaction, handle the historization and the field change log as well for a given change for updates, inserts, and deletes as well
-	- create a service layer, that hides the repo implementation details from the controllers, and instead of using repo in the changeset handling, the project should use the service layer, that handles every historization step within a transaction, with the above constraints.
-	- I want my phnx.gen generators to use the service layer by default at every step.
-
+	- generate field_log and history tables for every table
+	- modify schema_access (in the context layer) generator in order to modify get and get_all repo functions to exclude soft-deleted records
+	- modify schema_access (in the context layer) generator to generate code for field logging and scd2 logging.
 
 ## Prerequisites
 
@@ -19,7 +16,8 @@ modifying the generators with following features:
   - ![custom_mix_tasks](./readme_assets/custom_mix_tasks.png)
 - copy the {project}/priv/templates folder from this project into your {project}/priv folder:
   - ![templates](./readme_assets/templates.png)
-
+- copy the bash command and modify it for your needs, based on the Usage section:
+  - ![bash_script_to_generate](./readme_assets/bash_script_to_generate.png)
 
 ## Usage
 
@@ -31,10 +29,12 @@ modifying the generators with following features:
 
 In the bash script:
 
-1. execute custom mix task: gen_field_logs.ex - not necessarily so, but I execute it with the same entity fields, that were used in the phx.gen.html
+1. execute custom mix task: gen_field_logs.ex - leave the field definitions for now, this table has a fix schema.
 2. execute custom mix task: gen_scd2.ex - here, it MUST be with the same fields than in the html generator
 3. execute mix phx.gen.[...] (I used html, so mix phx.gen.html for this, but I didn't override the html part in this template project, and you may use other generators for your purpose.
+   1. This step will include also the context generation, which, if you use my template, will generate the necessary functions to use the field logging and the SCD2 logging.
 4. always add 1 second sleep between the generator commands, since if migrations are generated with the same timestamp it get's you some headaches.
+5. Always check if you have unique constraints defined, the Manual TODO section (below).
 
 ### Manual TODO for unique constraints!
 
