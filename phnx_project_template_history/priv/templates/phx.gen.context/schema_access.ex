@@ -3,6 +3,8 @@
   alias <%= inspect schema.module %>FieldLog
   alias <%= inspect schema.module %>History
 
+  @last_date = ~U[2099-12-31 23:59:59Z]
+
   @doc """
   Returns the list of <%= schema.plural %>.
 
@@ -49,14 +51,11 @@
     def create_<%= schema.singular %>(attrs \\ %{}) do
         old_record = %<%= inspect schema.alias %>{}
 
-        new_record =
-          %<%= inspect schema.alias %>{}
-          |> <%= inspect schema.alias %>.changeset(attrs)
-          |> Repo.insert!()
-          |> log_changes(old_record, :create)
-          |> scd2_historize(attrs, :create)
-
-        {:ok, new_record}
+        %<%= inspect schema.alias %>{}
+        |> <%= inspect schema.alias %>.changeset(attrs)
+        |> Repo.insert()
+        |> log_changes(old_record, :create)
+        |> scd2_historize(attrs, :create)
     end
 
   @doc """
@@ -120,18 +119,17 @@
   end
 
 
-  defp log_changes(record, old_record, action) do
+  defp log_changes({:ok, new_record} = record, old_record, action) do
     case action do
       :create ->
         old_record = %<%= inspect schema.alias %>{}
-        record
+        new_record
         |> track_record_changes(old_record)
         |> create_change_log(record, action)
         # |> Logger.info("Created <%= schema.singular %>: #{inspect record}")
       :update ->
-        {:ok, new_record} = record
         new_record
-      |> track_record_changes(old_record)
+        |> track_record_changes(old_record)
         |> create_change_log(record, action)
         # |> Logger.info("Updated <%= schema.singular %>: #{inspect record}")
       :delete ->
@@ -159,44 +157,22 @@
     end
 
 
-    @doc """
-    Create a change log for a record.
-    """
-
     ## if there are no changes and the action is not delete
-    defp create_change_log(changes, record, action) when Kernel.map_size(changes) == 0 and action != :delete do
+    defp create_change_log(changes, record, action) when Kernel.map_size(changes) == 0 and action in [:create, :update] do
       IO.puts("No changes to log")
       record
     end
 
 
-    ## on create
-    defp create_change_log(changes, record, :create) do
-      Enum.map(changes, fn {key, value} ->
-        {_old_val, new_val} = value
-        %{
-          table_name: "<%= schema.table %>",
-          row_id: Map.get(record, :id),
-          action: "create",
-          field_name: key,
-          old_value: "N/A",
-          new_value: new_val,
-          time_of_change: DateTime.utc_now(),
-          changed_by: "system"
-        } |> log_changes_in_repo()
-      end)
-      record
-    end
-
-    ## on update
-    defp create_change_log(changes, record, :update) do
-      {:ok, new_record} = record
+    ## on create and update
+    defp create_change_log(changes, {:ok, new_record} = record, action) when action in [:create, :update] do
       Enum.map(changes, fn {key, value} ->
         {old_val, new_val} = value
+        old_val = change_to_na(old_val)
         %{
           table_name: "<%= schema.table %>",
           row_id: Map.get(new_record, :id),
-          action: "update",
+          action: Atom.to_string(action),
           field_name: key,
           old_value: old_val,
           new_value: new_val,
@@ -207,9 +183,15 @@
       record
     end
 
+    defp change_to_na(value) do
+      case value do
+        nil -> "N/A"
+        _ -> value
+      end
+    end
+
     ## on delete
-    defp create_change_log(changes, record, :delete) do
-      {:ok, new_record} = record
+    defp create_change_log(changes, {:ok, new_record} = record, :delete) do
       # no need for Enum.map as there is only one record - no changes tracked
       %{
         table_name: "<%= schema.table %>",
@@ -231,57 +213,61 @@
       |> Repo.insert()
     end
 
+    defp scd2_historize({:error, _} = record, _attrs, _action) do
+      IO.puts("Error in changeset")
+      record
+    end
 
-    defp scd2_historize(record, attrs, action) do
-      last_date = ~U[2099-12-31 23:59:59Z]
-      case action do
+    ## SCD2 History tracking
+    ## create
+    defp scd2_historize({:ok, actual_record} = record, attrs, :create) do
+      extended_attrs = attrs
+        |> Map.put(:entity_id, Map.get(actual_record, :id))
+        |> Map.put(:dat_from, DateTime.utc_now())
+        |> Map.put(:dat_to, @last_date)
+        |> Map.put(:is_current, true)
+        |> Map.put(:is_deleted, false)
+        |> Map.put(:time_of_change, DateTime.utc_now())
+        |> Map.put(:changed_by, "system")
+        |> Enum.into(%{}, fn {k, v} -> {String.to_atom(to_string(k)), v} end)  # Ensure all keys are atoms
 
-        :create ->
-          extended_attrs = attrs
-          |> Map.put(:entity_id, Map.get(record, :id))
-          |> Map.put(:dat_from, DateTime.utc_now())
-          |> Map.put(:dat_to, last_date)
-          |> Map.put(:is_current, true)
-          |> Map.put(:is_deleted, false)
-          |> Map.put(:time_of_change, DateTime.utc_now())
-          |> Map.put(:changed_by, "system")
-          |> Enum.into(%{}, fn {k, v} -> {String.to_atom(to_string(k)), v} end)  # Ensure all keys are atoms
+      %<%= inspect schema.alias %>History{}
+        |> <%= inspect schema.alias %>History.changeset(extended_attrs)
+        |> IO.inspect()
+        |> Repo.insert()
 
-          %<%= inspect schema.alias %>History{}
-          |> <%= inspect schema.alias %>History.changeset(extended_attrs)
-          |> IO.inspect()
-          |> Repo.insert()
+      record
+    end
 
-        :update ->
-          {:ok, updated_scd1_record} = record
+    ## update
+    defp scd2_historize({:ok, actual_record} = record, attrs, :update) do
+      # Update the current record to be non-current
+      Repo.one(from s in <%= inspect schema.alias %>History, where: s.entity_id == ^Map.get(actual_record, :id) and s.is_current == true)
+        |> <%= inspect schema.alias %>History.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: false, changed_by: "system", time_of_change: DateTime.utc_now()})
+        |> Repo.update()
 
-          # Update the current record to be non-current
-          Repo.one(from s in <%= inspect schema.alias %>History, where: s.entity_id == ^Map.get(updated_scd1_record, :id) and s.is_current == true)
-            |> <%= inspect schema.alias %>History.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: false, changed_by: "system", time_of_change: DateTime.utc_now()})
-            |> Repo.update()
+      # Insert a new record with the updated values
+        extended_attrs = attrs
+        |> Map.put(:entity_id, Map.get(actual_record, :id))
+        |> Map.put(:dat_from, DateTime.utc_now())
+        |> Map.put(:dat_to, @last_date)
+        |> Map.put(:is_current, true)
+        |> Map.put(:is_deleted, false)
+        |> Map.put(:time_of_change, DateTime.utc_now())
+        |> Map.put(:changed_by, "system")
+        |> Enum.into(%{}, fn {k, v} -> {String.to_atom(to_string(k)), v} end)  # Ensure all keys are atoms
 
-          # Insert a new record with the updated values
-            extended_attrs = attrs
-            |> Map.put(:entity_id, Map.get(updated_scd1_record, :id))
-            |> Map.put(:dat_from, DateTime.utc_now())
-            |> Map.put(:dat_to, last_date)
-            |> Map.put(:is_current, true)
-            |> Map.put(:is_deleted, false)
-            |> Map.put(:time_of_change, DateTime.utc_now())
-            |> Map.put(:changed_by, "system")
-            |> Enum.into(%{}, fn {k, v} -> {String.to_atom(to_string(k)), v} end)  # Ensure all keys are atoms
+        %<%= inspect schema.alias %>History{}
+        |> <%= inspect schema.alias %>History.changeset(extended_attrs)
+        |> Repo.insert()
 
-            %<%= inspect schema.alias %>History{}
-            |> <%= inspect schema.alias %>History.changeset(extended_attrs)
-            |> Repo.insert()
+      record
+    end
 
-        :delete ->
-          {:ok, updated_scd1_record} = record
-
-          Repo.one(from s in <%= inspect schema.alias %>History, where: s.entity_id == ^Map.get(updated_scd1_record, :id) and s.is_current == true)
-            |> <%= inspect schema.alias %>History.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: true, changed_by: "system", time_of_change: DateTime.utc_now(), deleted_at: DateTime.utc_now()})
-            |> Repo.update()
-      end
-
+    ## delete
+    defp scd2_historize({:ok, actual_record} = record, attrs, :delete) do
+      Repo.one(from s in <%= inspect schema.alias %>History, where: s.entity_id == ^Map.get(actual_record, :id) and s.is_current == true)
+        |> <%= inspect schema.alias %>History.changeset(%{dat_to: DateTime.utc_now(), is_current: false, is_deleted: true, changed_by: "system", time_of_change: DateTime.utc_now(), deleted_at: DateTime.utc_now()})
+        |> Repo.update()
       record
     end
