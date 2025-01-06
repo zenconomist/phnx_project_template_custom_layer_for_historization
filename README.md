@@ -40,7 +40,9 @@ In the bash script:
 
 One thing is to change, if you added unique constraints in your entity, you have to add the :deleted_at field to the migration file, BEFORE you run mix ecto.migrate, like so:
 
-![unique_index_manual change](./readme_assets/unique_index_manual_change.png)
+![unique_index_manual_change](./readme_assets/unique_index_man_change_nuls_distinct.png)
+
+Add :deleted_at, and also nulls_distinct: false option to the unique index!
 
 This is due to the fact, that if you don't add this, you delete a record (which will be a soft delete in this case, adding a date to the deleted_at field), if you don't add the :deleted_at to the unique index, anytime the user accidentally creates the same username or email (or whatever, but the user won't be able to see the deleted records), the user will recieve an error because of the unique constraint.
 
